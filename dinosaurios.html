@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dinosaurios 💚🩷</title><link rel="stylesheet" href="styles.css">
+</head>
+<body class="dino-page">
+<main class="dino-world">
+  <div class="dino-bg"></div><div class="dino-stars"></div>
+  <div class="dino-leaf leaf1">🌿</div><div class="dino-leaf leaf2">🌿</div><div class="dino-leaf leaf3">🍃</div>
+  <div class="dino-content">
+    <a class="dino-back" href="indice.html">← Volver al universo</a>
+    <header class="dino-header">
+      <div class="dino-title-icon">🦖</div>
+      <div class="dino-kicker">Nuestro pequeño mundo jurásico</div>
+      <h1>Dinosaurios</h1>
+      <p>Un rincón prehistórico para jugar, descubrir y juntar a dos pequeños dinosaurios. 🩷💚</p>
+    </header>
+
+    <section class="dino-game-card maze-card">
+      <div class="game-top">
+        <span>🌿 Misión jurásica</span><span id="gameStatus">Ayuda a José a encontrar a Bianca</span>
+      </div>
+      <h2>El camino hacia el amor</h2>
+      <p class="game-instruction">
+        🦖 <b class="jose-word">José</b> está al inicio del laberinto. Ayúdalo a encontrar al amor de su vida. 💚🩷
+      </p>
+
+      <div class="maze-wrap">
+        <div class="maze-message">
+          <span class="maze-label">MISIÓN</span>
+          <strong>Ayuda a este dinosaurio a encontrar al amor de su vida. ❤️</strong>
+          <small>Usa las flechas, WASD o los botones para avanzar.</small>
+        </div>
+        <div class="dino-maze" id="dinoMaze" aria-label="Laberinto para José y Bianca"></div>
+        <div class="maze-code-reveal" id="mazeCodeReveal" aria-live="polite" aria-hidden="true">
+          <span class="code-sparkle">✨</span>
+          <strong>¡Descubriste un código!</strong>
+          <span>🔐 <b>Sol1201</b></span>
+          <button type="button" id="closeCodeReveal">Seguir jugando</button>
+        </div>
+        <div class="maze-controls" aria-label="Controles del laberinto">
+          <button data-move="up" aria-label="Arriba">▲</button>
+          <div><button data-move="left" aria-label="Izquierda">◀</button><button data-move="down" aria-label="Abajo">▼</button><button data-move="right" aria-label="Derecha">▶</button></div>
+        </div>
+      </div>
+
+      <div class="maze-progress">
+        <span id="mazeSteps">Pasos: 0</span>
+        <span id="mazeHint">💡 Busca el camino hasta Bianca</span>
+      </div>
+      <button class="dino-reset" id="resetMaze">↻ Reiniciar laberinto</button>
+      <div class="dino-success" id="dinoSuccess" aria-live="polite">
+        <div class="success-heart">♥</div>
+        <h3>¡José encontró a Bianca! 🦖🩷</h3>
+        <p>Después de tantos caminos, siempre hay un lugar al que vale la pena llegar: donde está la persona que amas. ❤️</p>
+      </div>
+      <div class="dino-rain" id="dinoRain" aria-hidden="true"></div>
+    </section>
+
+    <section class="dino-letter" aria-label="Palabras para Bianca">
+      <div class="letter-glow">💗</div>
+      <div class="letter-card">
+        <div class="letter-kicker">🦖 Unas palabras de tu T-Rex</div>
+        <h2>Para mi pequeña dinosauria</h2>
+        <div class="letter-text">
+          <p>Hola, mi pequeña dinosauria. Espero que te guste este pequeño juego que realicé para ti.</p>
+          <p>No pensé que me fueran a gustar los dinosaurios, pero ahora amo a los dinosaurios gracias a ti, mi niña linda.</p>
+          <p>Sé que en estos momentos te sientes mal. Bueno, lo digo porque esto lo estoy escribiendo el <strong>20/09/2026</strong>. Espero que hoy estés más feliz y no pienses que cambiaré a mi dinosauria, porque su dinosaurio la debe proteger y debe estar siempre con ella. Y así será, amor: siempre estaré cuidándote.</p>
+          <p>Siempre que salimos estoy preocupado por ti, y eso es raro, porque a veces, cuando veo que va a pasar algo, solo te jalo del brazo o hago algún movimiento extraño, como si mis reflejos estuvieran al pendiente de que nada te pase.</p>
+          <p>Y pues mi cuerpo se da cuenta de que no solo a mi corazón le interesas, sino a todo mi ser.</p>
+          <p class="letter-ending">Te amo, mi niña. Y sigue disfrutando tu página.</p>
+          <p class="letter-signature">Con amor, tu T-Rex 🦖<br><span>Raaawrww 💚🩷</span></p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+<script src="script.js"></script>
+<script>(() => {
+  const mazeEl = document.getElementById('dinoMaze');
+  const status = document.getElementById('gameStatus');
+  const stepsEl = document.getElementById('mazeSteps');
+  const hintEl = document.getElementById('mazeHint');
+  const success = document.getElementById('dinoSuccess');
+  const rain = document.getElementById('dinoRain');
+  const codeReveal = document.getElementById('mazeCodeReveal');
+  const closeCodeReveal = document.getElementById('closeCodeReveal');
+  const reset = document.getElementById('resetMaze');
+  const COLS = 15, ROWS = 11;
+  const secretHeart = {x:7,y:5};
+  let maze = [], player = {x:0,y:0}, goal = {x:COLS-1,y:ROWS-1}, steps = 0, done = false, codeFound = false;
+
+  function makeMaze(){
+    // Start with walls and carve a deterministic, always-solvable maze using DFS.
+    maze = Array.from({length: ROWS}, () => Array(COLS).fill(1));
+    const stack = [[1,1]];
+    maze[1][1] = 0;
+    const dirs = [[0,2],[2,0],[0,-2],[-2,0]];
+    while(stack.length){
+      const [x,y] = stack[stack.length-1];
+      const choices = dirs.map(([dx,dy])=>[x+dx,y+dy,dx,dy])
+        .filter(([nx,ny])=>nx>0 && nx<COLS-1 && ny>0 && ny<ROWS-1 && maze[ny][nx]===1);
+      if(!choices.length){ stack.pop(); continue; }
+      const [nx,ny,dx,dy] = choices[Math.floor((x*17+y*31+stack.length*13)%choices.length)];
+      maze[y+dy/2][x+dx/2] = 0;
+      maze[ny][nx] = 0;
+      stack.push([nx,ny]);
+    }
+    // Open the entrance and exit and connect them to the carved maze.
+    maze[0][0]=0; maze[1][0]=0; maze[0][1]=0;
+    maze[ROWS-1][COLS-1]=0; maze[ROWS-2][COLS-1]=0; maze[ROWS-1][COLS-2]=0;
+    // Add a few wider romantic shortcuts without making it trivial.
+    [[4,2],[10,2],[6,6],[12,8]].forEach(([x,y])=>{ if(maze[y]&&maze[y][x]!==undefined){ maze[y][x]=0; }});
+  }
+
+  function render(){
+    mazeEl.innerHTML='';
+    mazeEl.style.setProperty('--cols', COLS);
+    mazeEl.style.setProperty('--rows', ROWS);
+    for(let y=0;y<ROWS;y++) for(let x=0;x<COLS;x++){
+      const cell=document.createElement('div');
+      cell.className='maze-cell '+(maze[y][x]?'wall':'path');
+      cell.dataset.x=x; cell.dataset.y=y;
+      if(x===0&&y===0) cell.classList.add('start-cell');
+      if(x===goal.x&&y===goal.y) cell.classList.add('goal-cell');
+      if(x===secretHeart.x&&y===secretHeart.y){
+        cell.classList.add('secret-heart-cell');
+        const heart=document.createElement('span');
+        heart.className='maze-secret-heart';
+        heart.textContent='❤️';
+        heart.setAttribute('aria-label','Corazón secreto');
+        cell.appendChild(heart);
+      }
+      mazeEl.appendChild(cell);
+    }
+    placePlayer();
+  }
+
+  function placePlayer(){
+    const old=mazeEl.querySelector('.maze-jose'); if(old) old.remove();
+    const cell=mazeEl.querySelector(`.maze-cell[data-x="${player.x}"][data-y="${player.y}"]`);
+    if(!cell) return;
+    const jose=document.createElement('div'); jose.className='maze-jose'; jose.innerHTML='🦖<span>José</span>';
+    jose.setAttribute('aria-label','José'); cell.appendChild(jose);
+  }
+
+  function move(dx,dy){
+    if(done) return;
+    const nx=player.x+dx, ny=player.y+dy;
+    if(nx<0||nx>=COLS||ny<0||ny>=ROWS||maze[ny][nx]===1){
+      hintEl.textContent='🌿 Ese camino está bloqueado... busca otra ruta.';
+      return;
+    }
+    player={x:nx,y:ny}; steps++; stepsEl.textContent='Pasos: '+steps;
+    if((steps%5)===0) hintEl.textContent='🦖 José sigue avanzando por Bianca...';
+    placePlayer();
+    const cell=mazeEl.querySelector(`.maze-cell[data-x="${nx}"][data-y="${ny}"]`);
+    if(cell){
+      cell.classList.add('visited');
+      const mark=document.createElement('span'); mark.className='footprint'; mark.textContent='♥'; cell.appendChild(mark);
+      if(nx===secretHeart.x&&ny===secretHeart.y && !codeFound){
+        codeFound=true;
+        const heart=cell.querySelector('.maze-secret-heart');
+        if(heart) heart.remove();
+        codeReveal.classList.add('show');
+        codeReveal.setAttribute('aria-hidden','false');
+        hintEl.textContent='🔐 José encontró un secreto jurásico...';
+      }
+    }
+    if(nx===goal.x&&ny===goal.y) finish();
+  }
+
+  function finish(){
+    done=true; status.textContent='¡José encontró a Bianca! 💚🩷'; hintEl.textContent='💞 El amor encontró el camino.';
+    success.classList.add('show'); mazeEl.classList.add('completed');
+    // La lluvia vive sobre toda la página, no solo sobre el laberinto.
+    const pageRoot=document.querySelector('.dino-world');
+    if(rain.parentElement!==pageRoot) pageRoot.appendChild(rain);
+    rain.innerHTML='';
+    rain.style.setProperty('--page-height', Math.max(document.documentElement.scrollHeight, pageRoot.scrollHeight)+'px');
+    rain.classList.add('active');
+    const icons=['💗','🦖','🩷','🦕','💖','💚','💞','🦖','💕','🦕'];
+    for(let i=0;i<110;i++){
+      const item=document.createElement('span'); item.textContent=icons[i%icons.length];
+      item.style.left=(Math.random()*100)+'%';
+      item.style.setProperty('--delay',(-Math.random()*6)+'s');
+      item.style.setProperty('--drift',((Math.random()-.5)*240)+'px');
+      item.style.setProperty('--fall',(5+Math.random()*5)+'s');
+      item.style.fontSize=(14+Math.random()*24)+'px';
+      item.style.setProperty('--spin',(180+Math.random()*540)+'deg');
+      rain.appendChild(item);
+    }
+  }
+
+  function start(){
+    makeMaze(); player={x:0,y:0}; steps=0; done=false; codeFound=false;
+    status.textContent='Ayuda a José a encontrar a Bianca'; stepsEl.textContent='Pasos: 0'; hintEl.textContent='💡 Busca el camino hasta Bianca';
+    success.classList.remove('show'); mazeEl.classList.remove('completed'); rain.classList.remove('active'); rain.innerHTML='';
+    codeReveal.classList.remove('show'); codeReveal.setAttribute('aria-hidden','true');
+    render();
+  }
+
+  closeCodeReveal.addEventListener('click',()=>{
+    codeReveal.classList.remove('show');
+    codeReveal.setAttribute('aria-hidden','true');
+  });
+
+  const keyMap={ArrowUp:[0,-1],w:[0,-1],W:[0,-1],ArrowDown:[0,1],s:[0,1],S:[0,1],ArrowLeft:[-1,0],a:[-1,0],A:[-1,0],ArrowRight:[1,0],d:[1,0],D:[1,0]};
+  window.addEventListener('keydown',e=>{if(keyMap[e.key]){e.preventDefault(); move(...keyMap[e.key]);}});
+  document.querySelectorAll('[data-move]').forEach(btn=>btn.addEventListener('click',()=>{
+    const d={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[btn.dataset.move]; move(...d);
+  }));
+  reset.addEventListener('click',start);
+  start();
+})();</script>
+</body></html>
