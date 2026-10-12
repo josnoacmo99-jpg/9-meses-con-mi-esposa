@@ -1,0 +1,13 @@
+CARTA INTERACTIVA — 24 FOTOS INTEGRADAS
+
+Abre index.html.
+Las 24 fotografías están dentro de la carpeta "fotos".
+La primera página muestra las fotos cayendo sobre el fondo espacial,
+con estrellas, destellos y movimiento.
+La segunda página conserva el concepto de nuestro pequeño universo.
+
+El código secreto todavía NO está asignado. Lo elegiremos después.
+
+
+VERSION PARA GITHUB PAGES SIN CARPETAS
+Todos los archivos multimedia se colocaron en la raiz del repositorio y sus referencias se actualizaron para usar los nuevos nombres. Sube todos los archivos de este ZIP al mismo nivel que index.html.
